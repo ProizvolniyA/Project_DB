@@ -1,0 +1,14 @@
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: postgres.dockerfile
+    image: "postgres-purchase_db"
+    container_name: ${CONTAINER_NAME}
+    environment:
+      POSTGRES_DB: ${BASE_DB}
+      POSTGRES_USER: ${BASE_USER}
+      POSTGRES_PASSWORD: ${BASE_PASSWORD}
+    ports:
+      - "6666:5432"
+    restart: unless-stopped
