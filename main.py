@@ -315,3 +315,60 @@ async def generate_orders(n: int):
 
 
 
+# -------------------------------------------------------------------------
+# REQUESTS
+
+
+# JOIN
+# table1.join(table2, table1.param == table2.param)
+
+@APP.get("/product_and_customer_join", tags=["requests"])
+async def get_product_and_customer():
+    product_and_customer_query = SESSION.query(model.Product).join(model.Customer, 
+        model.Product._id_ == model.Customer._id_)
+    return product_and_customer_query.all()
+
+
+
+# SELECT
+
+@APP.get("/select_from_orders", tags=["requests"])
+async def get_orders_where(price : float = 0):
+   order_query = SESSION.query(model.Order).filter(
+        model.Order.order_price  >= price
+    )
+    return order_query.all()
+
+
+
+# UPDATE
+
+@APP.put("/update_order_price", tags=["requests"])
+async def update_order_price(
+        min_price: float = Query(..., description="input min price for meal"),
+        new_price:float =  Query(..., description="input new price for meal"),
+):
+    order_query = SESSION.query(model.Order).filter(model.Order.order_price < min_price).update({"order_price": new_price})
+    SESSION.commit()
+
+
+
+# SORT
+    
+@APP.get("/sort_orders", tags=["requests"])
+async def sort_orders_by_price():
+    order_query = SESSION.query(model.Order).order_by(model.Order.order_price)
+    return order_query.all()
+
+
+# GROUP BY
+
+@APP.get("/group_orders_by_count", tags=["requests"])
+async def group_orders():
+    order_query = SESSION.query(model.Order.order_count).group_by(
+        model.Order.order_count).all()
+    return [{"count": count for order_count in order_query]
+
+
+
+
