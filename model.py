@@ -9,7 +9,7 @@ class Product(BASE):
     _id_ = Column(Integer, primary_key=True, autoincrement=True)
     product_name = Column(String(32), nullable=False)
     product_manufacturer = Column(String(32), nullable=False)
-    pruduct_measurement_type = Column(String(32), nullable=False)
+    product_measurement_type = Column(String(32), nullable=False)
 
 class Customer(BASE):
     __tablename__ = "Customer"
