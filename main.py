@@ -162,3 +162,156 @@ async def delete_customer(customer_id: int):
 # -----------------------------------------------------------------------------------------------------
 # CRUD for Orders
 
+
+
+@APP.post("/add_order", tags=["order"])
+async def add_order(
+    _id_: int,
+    product_id : int,
+    customer_id: int,
+    order_count: int,
+    order_date,
+    order_price : float,
+):
+    
+    if SESSION.query(model.Order).filter(model.Order._id_==_id_).first() is None:
+        if SESSION.query(model.Product).filter(model.Product._id_==product_id).first() is not None:
+            if SESSION.query(model.Customer).filter(model.Customer._id_==customer_id).first() is not None:
+                obj = model.Order(
+                    _id_=_id_,
+                    product_id=product_id,
+                    customer_id=customer_id,
+                    order_count=order_count,
+                    order_date=order_date,
+                    order_price=order_price,
+                )
+                SESSION.add(obj)
+                SESSION.commit()
+                return f"Order added: {obj._id_}"
+    
+    return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ID is already used")
+
+
+@APP.get("/get_order", tags=["order"])
+async def get_all_orders(skip: int = 0, limit: int = 100):
+    order_query = SESSION.query(model.Order).offset(skip).limit(limit)
+    return order_query.all()
+
+
+@APP.put("/update/{order_id}", tags=["order"])
+async def update_order(
+    order_id: int,
+    new_product_id : int,
+    new_customer_id: int,
+    new_order_count: int,
+    new_order_date,
+    new_order_price : float,
+):
+    new_obj = SESSION.query(model.Order).filter(model.Order._id_==order_id).first()
+    
+    if new_obj is None:
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ID not found")
+    
+    if new_product_id:
+        new_obj.product_id = new_product_id
+    if new_customer_id:
+        new_obj.customer_id = new_customer_id
+    if new_order_count:
+        new_obj.order_count = new_order_count
+    if new_order_date:
+        new_obj.order_date = new_order_date
+    if new_order_price:
+        new_obj.order_price = new_order_price
+
+    SESSION.add(new_obj)
+    SESSION.commit()
+    return f"Order with ID '{new_obj._id_}' is updated"
+
+
+@APP.delete("/delete/{order_id}", tags=["order"])
+async def delete_order(order_id: int):
+    obj = SESSION.query(model.Order).filter(model.Order._id_==order_id).first()
+    if obj is not None:
+        SESSION.delete(obj)
+        SESSION.commit()
+        return f"Order with ID {obj._id_} deleted"
+    return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ID not found")
+
+
+
+
+
+# ------------------------------------------------------------------------------------
+# Data generation script
+
+
+
+fake = Faker()
+
+@APP.post("/generate_product", tags=["product"])
+async def generate_products(n: int):
+    index = 0
+    while index != n:
+        if SESSION.query(model.Product).filter(model.Product._id_==index).first() is not None:
+            index += 1
+            n += 1
+            continue
+        obj = model.Product(
+            _id_=index,
+            product_name = fake.name(),
+            product_manufacturer = fake.company(),
+            product_measurement_type =fake.word(),
+        )
+        SESSION.add(obj)
+        SESSION.commit()
+        index += 1
+    return 
+
+@APP.post("/generate_customers", tags=["customer"])
+async def generate_customers(n: int):
+    index = 0
+    while index != n:
+        if SESSION.query(model.Customer).filter(model.Customer._id_==index).first() is not None:
+            index += 1
+            n += 1
+            continue
+        obj = model.Customer(
+            _id_=index,
+            customer_fullname =fake.name(),
+            customer_address =fake.address(),
+            customer_phone =fake.phone_number(),
+            customer_contact_person =fake.name()
+        )
+        SESSION.add(obj)
+        SESSION.commit()
+        index += 1
+    return 
+
+@APP.post("/generate_orders", tags=["order"])
+async def generate_orders(n: int):
+    index = 0
+    while index != n: 
+        if SESSION.query(model.Product, model.Order).filter(model.Product._id_==model.Order.product_id and model.Order._id_==index).first() is not None:
+            if SESSION.query(model.Customer, model.Order).filter(model.Customer._id_==model.Order.customer_id and model.Order._id_==index).first() is not None:
+                if SESSION.query(model.Order).filter(model.Order._id_==index).first() is not None:
+                    index += 1
+                    n += 1
+                    continue
+            else: return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer ID limit reached")
+        else: return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product ID limit reached")
+        
+        generated_order = model.Order(
+            _id_=index,
+            product_id=randint(1, 99),
+            customer_id=randint(1, 99), 
+            order_count=randint(1, 10000),
+            order_date =fake.date_time_ad(),
+            order_price =fake.latitude(),
+        )
+        SESSION.add(generated_order)
+        SESSION.commit()
+        index += 1
+    return
+
+
+
