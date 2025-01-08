@@ -1,16 +1,17 @@
-from dotenv import dotenv_values
+from dotenv import load_dotenv
+import os
 import sqlalchemy as sql
 from sqlalchemy.orm import sessionmaker
 
+load_dotenv()
 def connect_to_base() -> sql.Engine:
-    config = dotenv_values()
     session_url = sql.engine.URL.create(
-        drivername="postgresql+psycopg2",
-        username=config.get("BASE_USER"),  # config["POSTGRES_USER"]
-        password=config.get("BASE_PASSWORD"),
-        host=config.get("BASE_HOST"),
-        port=config.get("BASE_PORT"),
-        database=config.get("BASE_DB")
+        drivername="postgresql+pg8000",
+        username=os.getenv("BASE_USER"),  # os["POSTGRES_USER"]
+        password=os.getenv("BASE_PASSWORD"),
+        host=os.getenv("BASE_HOST"),
+        port=os.getenv("BASE_PORT"),
+        database=os.getenv("BASE_DB")
     )
     return sql.create_engine(session_url)  # return engine
 
