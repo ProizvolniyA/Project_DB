@@ -34,10 +34,10 @@ async def add_product(
     
     if SESSION.query(model.Product).filter(model.Product._id_==_id_).first() is None:
         obj = model.Product(
-            _id_=_id_,
-            product_name=product_name,
-            product_manufacturer=product_manufacturer,
-            product_measurement_type=product_measurement_type,
+            _id_ = _id_,
+            product_name = product_name,
+            product_manufacturer = product_manufacturer,
+            product_measurement_type = product_measurement_type,
         )
         SESSION.add(obj)
         SESSION.commit()
@@ -106,10 +106,10 @@ async def add_way(
     if SESSION.query(model.Customer).filter(model.Customer._id_==_id_).first() is None:
         obj = model.Customer(
             _id_=_id_,
-            customer_fullname=customer_fullname,
-            customer_address=customer_address,
-            customer_phone=customer_phone,
-            customer_contact_person=customer_contact_person
+            customer_fullname = customer_fullname,
+            customer_address = customer_address,
+            customer_phone = customer_phone,
+            customer_contact_person = customer_contact_person
         )
         SESSION.add(obj)
         SESSION.commit()
