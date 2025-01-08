@@ -2,8 +2,10 @@ import model
 import sessions
 from fastapi import FastAPI, HTTPException, status
 from fastapi import Query
-from random import randint, uniform
+from random import randint
 from faker import Faker
+from datetime import datetime, date
+import uvicorn
 
 def create_BD():
     engine = sessions.connect_to_base()
@@ -11,6 +13,8 @@ def create_BD():
 
 if __name__ == "__main__":
     create_BD()
+    uvicorn.run("main:APP", host="127.0.0.1", port=8000, reload=True)
+
 
 APP = FastAPI()
 SESSION = sessions.connect_to_session()
@@ -170,20 +174,20 @@ async def add_order(
     product_id : int,
     customer_id: int,
     order_count: int,
-    order_date,
-    order_price : float,
+    order_date: date,
+    order_price: float,
 ):
     
     if SESSION.query(model.Order).filter(model.Order._id_==_id_).first() is None:
         if SESSION.query(model.Product).filter(model.Product._id_==product_id).first() is not None:
             if SESSION.query(model.Customer).filter(model.Customer._id_==customer_id).first() is not None:
                 obj = model.Order(
-                    _id_=_id_,
-                    product_id=product_id,
-                    customer_id=customer_id,
-                    order_count=order_count,
-                    order_date=order_date,
-                    order_price=order_price,
+                    _id_ = _id_,
+                    product_id = product_id,
+                    customer_id = customer_id,
+                    order_count = order_count,
+                    order_date = order_date,
+                    order_price = order_price,
                 )
                 SESSION.add(obj)
                 SESSION.commit()
@@ -201,11 +205,11 @@ async def get_all_orders(skip: int = 0, limit: int = 100):
 @APP.put("/update/{order_id}", tags=["order"])
 async def update_order(
     order_id: int,
-    new_product_id : int,
+    new_product_id: int,
     new_customer_id: int,
     new_order_count: int,
-    new_order_date,
-    new_order_price : float,
+    new_order_date: date,
+    new_order_price: float,
 ):
     new_obj = SESSION.query(model.Order).filter(model.Order._id_==order_id).first()
     
@@ -260,7 +264,7 @@ async def generate_products(n: int):
             _id_=index,
             product_name = fake.name(),
             product_manufacturer = fake.company(),
-            product_measurement_type =fake.word(),
+            product_measurement_type = fake.word(),
         )
         SESSION.add(obj)
         SESSION.commit()
@@ -277,10 +281,10 @@ async def generate_customers(n: int):
             continue
         obj = model.Customer(
             _id_=index,
-            customer_fullname =fake.name(),
-            customer_address =fake.address(),
-            customer_phone =fake.phone_number(),
-            customer_contact_person =fake.name()
+            customer_fullname = fake.name(),
+            customer_address = fake.address(),
+            customer_phone = fake.phone_number(),
+            customer_contact_person = fake.name()
         )
         SESSION.add(obj)
         SESSION.commit()
@@ -302,11 +306,11 @@ async def generate_orders(n: int):
         
         generated_order = model.Order(
             _id_=index,
-            product_id=randint(1, 99),
-            customer_id=randint(1, 99), 
-            order_count=randint(1, 10000),
-            order_date =fake.date_time_ad(),
-            order_price =fake.latitude(),
+            product_id = randint(1, 99),
+            customer_id = randint(1, 99), 
+            order_count = randint(1, 10000),
+            order_date = fake.date_time_ad(),
+            order_price = fake.latitude(),
         )
         SESSION.add(generated_order)
         SESSION.commit()
@@ -337,7 +341,7 @@ async def get_orders_where(price : float = 0):
    order_query = SESSION.query(model.Order).filter(
         model.Order.order_price  >= price
     )
-    return order_query.all()
+   return order_query.all()
 
 
 
@@ -367,7 +371,9 @@ async def sort_orders_by_price():
 async def group_orders():
     order_query = SESSION.query(model.Order.order_count).group_by(
         model.Order.order_count).all()
-    return [{"count": count for order_count in order_query]
+    return [{"count": order_count for order_count in order_query}]
+
+
 
 
 
